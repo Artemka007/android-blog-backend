@@ -125,3 +125,13 @@ class PostLikeView(APIView):
             "message": "Post has been saved.",
             "data": PostSerializer(post).data
         })
+
+class PostCommentsView(APIView):
+    def get(self, reques):
+        pass
+    def post(self, reques):
+        pass
+    def put(self, reques):
+        pass
+    def delete(self, reques):
+        pass
