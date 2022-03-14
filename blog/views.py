@@ -1,5 +1,7 @@
 from django.shortcuts import render
 from django.utils import timezone
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
 from rest_framework.views import APIView, Response
 from utils import status_codes
 
@@ -87,8 +89,7 @@ class PostView(APIView):
             "message": "The post saved successful."
         })
 
-
-class LikePostView():
+class PostLikeView(APIView):
     def put(self, request):
         id = request.GET.get("id")
         user = request.user
