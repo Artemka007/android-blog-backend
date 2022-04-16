@@ -1,16 +1,16 @@
-from django.shortcuts import render
+from django.http import HttpRequest
 from django.utils import timezone
-from django.utils.decorators import method_decorator
-from django.views.decorators.csrf import csrf_exempt
 from rest_framework.views import APIView, Response
 from utils import status_codes
 
-from blog.models import Post
-from blog.serializers import PostSerializer
+from blog.models import Post, PostComment
+from blog.serializers import (PostCommentCreateSerializer,
+                              PostCommentSerializer, PostCreateSerializer,
+                              PostSerializer)
 
 
 class PostView(APIView):
-    def get(self, request):
+    def get(self, request: HttpRequest):
         context = request.GET.get("context")
         if context == "user":
             user_id = request.GET.get("user")
@@ -18,7 +18,7 @@ class PostView(APIView):
                 user_id = int(user_id)
             except TypeError:
                 user_id = request.user.id
-            posts = Post.objects.filter(user__pk=user_id)
+            posts = Post.objects.filter(user__pk=user_id).order_by("created_time")
             serializer = PostSerializer(posts, many=True)
             return Response({
                 "code": status_codes.SUCCESS,
@@ -33,8 +33,8 @@ class PostView(APIView):
             "data": serializer.data
         })
 
-    def post(self, request):
-        serializer = PostSerializer(data=request.data)
+    def post(self, request: HttpRequest):
+        serializer = PostCreateSerializer(data={"body": request.data, "user": request.user.id, "created_time": timezone.now()})
         if serializer.is_valid():
             serializer.save()
             return Response({
@@ -48,7 +48,7 @@ class PostView(APIView):
                 "errors": serializer.error_messages
             })
 
-    def put(self, request):
+    def put(self, request: HttpRequest):
         id = request.GET.get("id")
         try:
             post = Post.objects.get(pk=int(id))
@@ -75,7 +75,7 @@ class PostView(APIView):
             })
 
 
-    def delete(self, request):
+    def delete(self, request: HttpRequest):
         id = request.GET.get("id")
         try:
             Post.objects.filter(pk=int(id)).delete()
@@ -86,20 +86,19 @@ class PostView(APIView):
             })
         return Response({
             "code": status_codes.SUCCESS,
-            "message": "The post saved successful."
+            "message": "The post was saved successful."
         })
 
 class PostLikeView(APIView):
-    def put(self, request):
+    def put(self, request: HttpRequest):
         id = request.GET.get("id")
-        user = request.user
 
         try:
             id = int(id)
         except TypeError:
             return Response({
                 "code": status_codes.BAD_REQUEST,
-                "message": "The type of 'id' must be a string."
+                "message": "The type of id should be a string."
             })
         except Exception as ex:
             return Response({
@@ -108,7 +107,7 @@ class PostLikeView(APIView):
             })
 
         try:
-            post = Post.objects.get(pk=id)
+            post: Post = Post.objects.get(pk=id)
         except Exception as ex:
             return Response({
                 "code": status_codes.BAD_REQUEST,
@@ -122,16 +121,44 @@ class PostLikeView(APIView):
         
         return Response({
             "code": status_codes.SUCCESS,
-            "message": "Post has been saved.",
+            "message": "Post was saved successful.",
             "data": PostSerializer(post).data
         })
 
 class PostCommentsView(APIView):
-    def get(self, reques):
+    def get(self, request: HttpRequest):
+        pid = request.GET.get("pid", None)
+        try:
+            pid = int(pid)
+        except:
+            return Response({
+                "code": status_codes.BAD_REQUEST,
+                "message": "The type of post id should be a string.",
+            })
+        comments = PostComment.objects.filter(post__pk=pid)
+        return Response({
+            "code": status_codes.SUCCESS,
+            "message": "The comments were returned.",
+            "data": PostCommentSerializer(comments).data
+        })
+
+    def post(self, request: HttpRequest):
+        serializer = PostCommentCreateSerializer(data={**request.data, "user": request.user.id})
+        is_valid = serializer.is_valid()
+        if not is_valid:
+            return Response({
+                "code": status_codes.BAD_REQUEST,
+                "message": "Comment data is not valid.",
+                "errors": serializer.errors
+            })
+        return Response({
+            "code": status_codes.INFO,
+            "message": "Successful."
+        })
+
+
+    def put(self, request):
         pass
-    def post(self, reques):
-        pass
-    def put(self, reques):
-        pass
-    def delete(self, reques):
+
+    def delete(self, request):
         pass

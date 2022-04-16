@@ -11,7 +11,7 @@ class Post(models.Model):
 
     body = models.TextField()
 
-    created_time = models.DateTimeField(auto_created=True)
+    created_time = models.DateTimeField(null=True, blank=True)
     updated_time = models.DateTimeField(auto_now=True)
 
     likes = models.ManyToManyField(
@@ -31,7 +31,9 @@ class PostComment(models.Model):
     post = models.ForeignKey(
         to=Post,
         on_delete=models.CASCADE,
-        related_name="comments"
+        related_name="comments",
+        null=True,
+        blank=True
     )
 
     body = models.TextField()

@@ -1,7 +1,6 @@
 from django.shortcuts import render
 from rest_framework.views import APIView, Response
 
-from account.generic import AuthorizationMixin
 from account.serializers import UserSerializer
 from account.utils import get_token
 from utils import status_codes

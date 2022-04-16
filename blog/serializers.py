@@ -11,6 +11,11 @@ class PostCommentSerializer(serializers.ModelSerializer):
         model = PostComment
         fields = "__all__"
 
+class PostCommentCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PostComment
+        fields = "__all__"
+
 class PostSerializer(serializers.ModelSerializer):
     user = UserSerializer(many=False, read_only=True)
     likes = UserSerializer(many=True, read_only=True)
@@ -20,7 +25,7 @@ class PostSerializer(serializers.ModelSerializer):
         model = Post
         fields = "__all__"
 
-class CreatePostSerializer(serializers.ModelSerializer):
+class PostCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
-        fields = "__all__"
+        fields = ("user","body",)
